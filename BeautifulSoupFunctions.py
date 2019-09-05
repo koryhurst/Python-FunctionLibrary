@@ -77,4 +77,41 @@ def ShowLinks(UrlToShow):
   #print(soup.find_all('a'))
   for link in soup.find_all('a'):
     print(link.get('href'))
-test
+
+def GetSiteMap(BaseURL):
+  #ShowLinks(BaseURL)
+
+  LinksAlreadyChecked = []
+  LinksAlreadyChecked.append(BaseURL)
+  #print(LinksAlreadyChecked)
+
+  #print(BaseURL)
+  NewLinks = GetLinkList(BaseURL, -1)
+  #print(len(NewLinks))
+  print(NewLinks)
+  for Link in NewLinks:
+    #need an additional check for external links
+    #print(Link[0:4])
+    #Starting an exception list
+    #Checking: http://www.feldercanada.comindex
+    if Link[0:4] != 'http':
+      if Link[0:len(BaseURL)] != BaseURL:
+        if Link[0:1] != '/':
+          LinkToCheck = BaseURL + '/' + Link
+        else:
+          LinkToCheck = BaseURL + Link
+        if LinkToCheck in LinksAlreadyChecked:
+          print('Already Checked: ' + LinkToCheck) 
+          NewLinks.remove(Link)
+        else:
+          print('Checking: ' + LinkToCheck)
+          GetMoreNewLinks = GetLinkList(LinkToCheck, -1)
+          for NewerLink in GetMoreNewLinks:
+            NewLinks.append(NewerLink)
+          LinksAlreadyChecked.append(LinkToCheck)
+    #else:
+      #I guess for completeness The base URl should be checked it could be a local link with a full address, but my hunch is that those would be covered by relative links
+      #print('Possible External Link (not Checking):')
+      
+  #print(LinksAlreadyChecked)
+  return LinksAlreadyChecked
