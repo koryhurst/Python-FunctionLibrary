@@ -85,8 +85,10 @@ def GetSiteMap(BaseURL):
   LinksAlreadyChecked.append(BaseURL)
   #print(LinksAlreadyChecked)
 
-  #print(BaseURL)
+  #print('BaseURL:' + BaseURL)
   NewLinks = GetLinkList(BaseURL, -1)
+  ActualDomain = BaseURL[BaseURL.find('//') + 2 : len(BaseURL)]
+  #print('ActualDomain:' +  ActualDomain)
   #print(len(NewLinks))
   print(NewLinks)
   for Link in NewLinks:
@@ -94,7 +96,9 @@ def GetSiteMap(BaseURL):
     #print(Link[0:4])
     #Starting an exception list
     #Checking: http://www.feldercanada.comindex
+    #Let's presume that if the link contains the actual rul it is fully formed
     if Link[0:4] != 'http':
+      #now if it is a fully formed 
       if Link[0:len(BaseURL)] != BaseURL:
         if Link[0:1] != '/':
           LinkToCheck = BaseURL + '/' + Link
