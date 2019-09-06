@@ -90,29 +90,40 @@ def GetSiteMap(BaseURL):
   ActualDomain = BaseURL[BaseURL.find('//') + 2 : len(BaseURL)]
   #print('ActualDomain:' +  ActualDomain)
   #print(len(NewLinks))
-  print(NewLinks)
+  #print(NewLinks)
   for Link in NewLinks:
     #need an additional check for external links
     #print(Link[0:4])
     #Starting an exception list
     #Checking: http://www.feldercanada.comindex
-    #Let's presume that if the link contains the actual rul it is fully formed
+    
+    #First is it it fully formed.  If not, form it.
     if Link[0:4] != 'http':
-      #now if it is a fully formed 
-      if Link[0:len(BaseURL)] != BaseURL:
-        if Link[0:1] != '/':
-          LinkToCheck = BaseURL + '/' + Link
-        else:
-          LinkToCheck = BaseURL + Link
-        if LinkToCheck in LinksAlreadyChecked:
-          print('Already Checked: ' + LinkToCheck) 
-          NewLinks.remove(Link)
-        else:
-          print('Checking: ' + LinkToCheck)
-          GetMoreNewLinks = GetLinkList(LinkToCheck, -1)
-          for NewerLink in GetMoreNewLinks:
-            NewLinks.append(NewerLink)
-          LinksAlreadyChecked.append(LinkToCheck)
+      #Some relative links contain the '/' some don't (others contain a leading '#')
+      if Link[0:1] != '/':
+        LinkToCheck = BaseURL + '/' + Link
+      else:
+        LinkToCheck = BaseURL + Link
+    else:
+      LinkToCheck = Link
+
+    #now, if that fully formed link is in the domain
+    #All the ones that we formed above will automatically pass this
+    if LinkToCheck.find(ActualDomain) > 0:
+      #now it should be within this site somewhere
+      #have we checked it before
+      if LinkToCheck in LinksAlreadyChecked:
+        print('Already Checked: ' + LinkToCheck) 
+        NewLinks.remove(Link)
+      #if not check it
+      else:
+        print('Checking: ' + LinkToCheck)
+        GetMoreNewLinks = GetLinkList(LinkToCheck, -1)
+        for NewerLink in GetMoreNewLinks:
+          NewLinks.append(NewerLink)
+        LinksAlreadyChecked.append(LinkToCheck)
+        NewLinks.remove(Link)
+
     #else:
       #I guess for completeness The base URl should be checked it could be a local link with a full address, but my hunch is that those would be covered by relative links
       #print('Possible External Link (not Checking):')
