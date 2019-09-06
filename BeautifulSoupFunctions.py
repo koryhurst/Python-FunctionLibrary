@@ -107,6 +107,12 @@ def GetSiteMap(BaseURL):
       else:
         LinkToCheck = Link
 
+      #there are some sites that have too pages with many parameters 
+      #see www.ablerecognition.com  their whole catalogue is there 
+      #so lets try removing the parameters
+      if LinkToCheck.find("?") > 0:
+        LinkToCheck = LinkToCheck[0:LinkToCheck.find("?")]
+
       #now, if that fully formed link is in the domain
       #All the ones that we formed above will automatically pass this
       if LinkToCheck.find(ActualDomain) > 0:
