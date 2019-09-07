@@ -88,7 +88,7 @@ def GetSiteMap(BusinessID, BaseURL, DatabaseDetails):
     passwd=DatabaseDetails[2],
     database=DatabaseDetails[3]
     )
-  sqlCheck = "select count(*) from tblWebPage where URL = '"
+  sqlCheck = "select URL from tblWebPage where URL = '"
   sqlInsert = "INSERT INTO tblwebpage (BusinessID, URL) VALUES (%s, %s)"
 
   #AllLinks = []
@@ -132,13 +132,8 @@ def GetSiteMap(BusinessID, BaseURL, DatabaseDetails):
         mycursorCheck.execute(sqlCheckThisPage)
         myresult = mycursorCheck.fetchall()
         print(myresult)
-        mycursorCheck.close()
-        wait = input("PRESS ENTER TO CONTINUE")
-        if myresult[0] == 1:
-          print('Already Checked: ' + LinkToCheck) 
-          NewLinks.remove(Link)
-        #if not check it
-        else:
+        #mycursorCheck.close()
+        if mycursorCheck.rowcount == 0:
           print('Checking: ' + LinkToCheck)
           GetMoreNewLinks = GetLinkList(LinkToCheck, -1)
           for NewerLink in GetMoreNewLinks:
@@ -154,6 +149,9 @@ def GetSiteMap(BusinessID, BaseURL, DatabaseDetails):
           mydb.commit()
           print(myCursorInsert.rowcount, "record inserted.")
           myCursorInsert.close()
+          NewLinks.remove(Link)
+        else:
+          print('Already Checked: ' + LinkToCheck) 
           NewLinks.remove(Link)
 
       #else:
