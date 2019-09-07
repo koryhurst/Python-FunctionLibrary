@@ -1,6 +1,7 @@
 #BeautifulSoup Functions
 import requests
 import urllib.request
+import mysql.connector
 
 from bs4 import BeautifulSoup
 
@@ -78,13 +79,32 @@ def ShowLinks(UrlToShow):
   for link in soup.find_all('a'):
     print(link.get('href'))
 
-def GetSiteMap(BaseURL):
-  #ShowLinks(BaseURL)
+def GetSiteMap(BaseURL, DatabaseDetails):
+  
+  #Database details should be a list like this  ["localhost","user","passwd","database="]
+  mydb = mysql.connector.connect(
+    host=DatabaseDetails[0],
+    user=DatabaseDetails[1],
+    passwd=DatabaseDetails[2],
+    database=DatabaseDetails[3]
+    )
 
   LinksAlreadyChecked = []
   LinksAlreadyChecked.append(BaseURL)
   #print(LinksAlreadyChecked)
+  sqlCheck = "select count(*) from tblWebPage where URL = "
+  sqlCheckThisPage = sqlCheck + BaseURL
+  wait = input("PRESS ENTER TO CONTINUE")
 
+  mycursor = mydb.cursor()
+  mycursor.execute(sqlCheckThisPage)
+  myresult = mycursor.fetchall()
+  print(myresult)
+  wait = input("PRESS ENTER TO CONTINUE")
+  #sql = "INSERT INTO tblwebpage (BusinessID, URL) VALUES (%s, %s)"
+  #AllLinks = []
+  
+  
   #print('BaseURL:' + BaseURL)
   NewLinks = GetLinkList(BaseURL, -1)
   ActualDomain = BaseURL[BaseURL.find('//') + 2 : len(BaseURL)]
