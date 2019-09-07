@@ -79,7 +79,7 @@ def ShowLinks(UrlToShow):
   for link in soup.find_all('a'):
     print(link.get('href'))
 
-def GetSiteMap(BaseURL, DatabaseDetails):
+def GetSiteMap(BusinessID, BaseURL, DatabaseDetails):
   
   #Database details should be a list like this  ["localhost","user","passwd","database="]
   mydb = mysql.connector.connect(
@@ -89,9 +89,8 @@ def GetSiteMap(BaseURL, DatabaseDetails):
     database=DatabaseDetails[3]
     )
   sqlCheck = "select count(*) from tblWebPage where URL = '"
-  mycursor = mydb.cursor()
-  
-  #sql = "INSERT INTO tblwebpage (BusinessID, URL) VALUES (%s, %s)"
+  sqlInsert = "INSERT INTO tblwebpage (BusinessID, URL) VALUES (%s, %s)"
+
   #AllLinks = []
   
   
@@ -102,52 +101,63 @@ def GetSiteMap(BaseURL, DatabaseDetails):
   #print(len(NewLinks))
   #print(NewLinks)
   for Link in NewLinks:
-    sqlCheckThisPage = sqlCheck + BaseURL + "'"
-    mycursor.execute(sqlCheckThisPage)
-    myresult = mycursor.fetchall()
-    print(myresult)
-    wait = input("PRESS ENTER TO CONTINUE")
-    if myresult[0] != 1:
       #need an additional check for external links
       #print(Link[0:4])
       #Starting an exception list
       #Checking: http://www.feldercanada.comindex
-      if Link is not None:
-        #First is it it fully formed.  If not, form it.
-        if Link[0:4] != 'http':
-          #Some relative links contain the '/' some don't (others contain a leading '#')
-          if Link[0:1] != '/':
-            LinkToCheck = BaseURL + '/' + Link
-          else:
-            LinkToCheck = BaseURL + Link
+    if Link is not None:
+      #First is it it fully formed.  If not, form it.
+      if Link[0:4] != 'http':
+        #Some relative links contain the '/' some don't (others contain a leading '#')
+        if Link[0:1] != '/':
+          LinkToCheck = BaseURL + '/' + Link
         else:
-          LinkToCheck = Link
+          LinkToCheck = BaseURL + Link
+      else:
+        LinkToCheck = Link
 
-        #there are some sites that have too pages with many parameters 
-        #see www.ablerecognition.com  their whole catalogue is there 
-        #so lets try removing the parameters
-        if LinkToCheck.find("?") > 0:
-          LinkToCheck = LinkToCheck[0:LinkToCheck.find("?")]
+      #there are some sites that have too pages with many parameters 
+      #see www.ablerecognition.com  their whole catalogue is there 
+      #so lets try removing the parameters
+      if LinkToCheck.find("?") > 0:
+        LinkToCheck = LinkToCheck[0:LinkToCheck.find("?")]
 
-        #now, if that fully formed link is in the domain
-        #All the ones that we formed above will automatically pass this
-        if LinkToCheck.find(ActualDomain) > 0:
-          #now it should be within this site somewhere
-          #have we checked it before
-          if LinkToCheck in LinksAlreadyChecked:
-            print('Already Checked: ' + LinkToCheck) 
-            NewLinks.remove(Link)
-          #if not check it
-          else:
-            print('Checking: ' + LinkToCheck)
-            GetMoreNewLinks = GetLinkList(LinkToCheck, -1)
-            for NewerLink in GetMoreNewLinks:
-              NewLinks.append(NewerLink)
-            LinksAlreadyChecked.append(LinkToCheck)
-            NewLinks.remove(Link)
+      #now, if that fully formed link is in the domain
+      #All the ones that we formed above will automatically pass this
+      if LinkToCheck.find(ActualDomain) > 0:
+        #now it should be within this site somewhere
+        #have we checked it before
+        mycursorCheck = mydb.cursor()
+        sqlCheckThisPage = sqlCheck + Link + "'"
+        mycursorCheck.execute(sqlCheckThisPage)
+        myresult = mycursorCheck.fetchall()
+        print(myresult)
+        mycursorCheck.close()
+        wait = input("PRESS ENTER TO CONTINUE")
+        if myresult[0] == 1:
+          print('Already Checked: ' + LinkToCheck) 
+          NewLinks.remove(Link)
+        #if not check it
+        else:
+          print('Checking: ' + LinkToCheck)
+          GetMoreNewLinks = GetLinkList(LinkToCheck, -1)
+          for NewerLink in GetMoreNewLinks:
+            NewLinks.append(NewerLink)
+          #sqlInsertThis = sqlInsert + LinkToCheck + "')"
+          #print(sqlInsertThis)
+          InsertValues = (BusinessID, LinkToCheck)
+          myCursorInsert = mydb.cursor()
+          print(InsertValues)
+          print("TryingInsert")
+          myCursorInsert.execute(sqlInsert, InsertValues)
+          print("Tried")
+          mydb.commit()
+          print(myCursorInsert.rowcount, "record inserted.")
+          myCursorInsert.close()
+          NewLinks.remove(Link)
 
-        #else:
-          #I guess for completeness The base URl should be checked it could be a local link with a full address, but my hunch is that those would be covered by relative links
-          #print('Possible External Link (not Checking):')
-          
-      #print(LinksAlreadyChecked)
+      #else:
+        #I guess for completeness The base URl should be checked it could be a local link with a full address, but my hunch is that those would be covered by relative links
+        #print('Possible External Link (not Checking):')
+        
+    #print(LinksAlreadyChecked)
