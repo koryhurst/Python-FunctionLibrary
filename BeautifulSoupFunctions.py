@@ -101,7 +101,8 @@ def GetSiteMap(BusinessID, BaseURL, DatabaseDetails):
   #print(len(NewLinks))
   #print(NewLinks)
   for Link in NewLinks:
-      #need an additional check for external links
+    print(NewLinks)
+    #need an additional check for external links
       #print(Link[0:4])
       #Starting an exception list
       #Checking: http://www.feldercanada.comindex
@@ -128,12 +129,15 @@ def GetSiteMap(BusinessID, BaseURL, DatabaseDetails):
         #now it should be within this site somewhere
         #have we checked it before
         mycursorCheck = mydb.cursor()
-        sqlCheckThisPage = sqlCheck + Link + "'"
+        sqlCheckThisPage = sqlCheck + LinkToCheck + "'"
         mycursorCheck.execute(sqlCheckThisPage)
         myresult = mycursorCheck.fetchall()
         print(myresult)
         #mycursorCheck.close()
-        if mycursorCheck.rowcount == 0:
+        if mycursorCheck.rowcount > 0:
+          print('Already Checked: ' + LinkToCheck) 
+          NewLinks.remove(Link)
+        else:
           print('Checking: ' + LinkToCheck)
           GetMoreNewLinks = GetLinkList(LinkToCheck, -1)
           for NewerLink in GetMoreNewLinks:
@@ -149,11 +153,7 @@ def GetSiteMap(BusinessID, BaseURL, DatabaseDetails):
           mydb.commit()
           print(myCursorInsert.rowcount, "record inserted.")
           myCursorInsert.close()
-          NewLinks.remove(Link)
-        else:
-          print('Already Checked: ' + LinkToCheck) 
-          NewLinks.remove(Link)
-
+          NewLinks.remove(Link) 
       #else:
         #I guess for completeness The base URl should be checked it could be a local link with a full address, but my hunch is that those would be covered by relative links
         #print('Possible External Link (not Checking):')
